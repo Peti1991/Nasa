@@ -33,3 +33,5 @@ const init = async () => {
 }
 
 document.getElementById("load-button")!.addEventListener("click", init)
+
+document.getElementById("app")!.insertAdjacentHTML("afterend", "<p class='bg-pink-400'>demo</p>")
