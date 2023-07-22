@@ -1,39 +1,49 @@
-let image = document.getElementById("image") as HTMLImageElement
-let button = document.getElementById("button") as HTMLButtonElement
-let dateInput = document.getElementById("date") as HTMLInputElement
-let title = document.getElementById("title") as HTMLHeadingElement
-let explanation = document.getElementById("explanation") as HTMLParagraphElement
+import "./style.css";
+import http from "axios";
+import { z } from "zod";
 
+let image = document.getElementById("image") as HTMLImageElement;
+let button = document.getElementById("button") as HTMLButtonElement;
+let dateInput = document.getElementById("date") as HTMLInputElement;
+let title = document.getElementById("title") as HTMLHeadingElement;
+let explanation = document.getElementById(
+  "explanation"
+) as HTMLParagraphElement;
 
+const NasaResponseSchema = z.object({
+  date: z.string(),
+  explanation: z.string(),
+  hdurl: z.string(),
+  media_type: z.string(),
+  service_version: z.string(),
+  title: z.string(),
+  url: z.string(),
+});
 
-type NasaData = {
-    "date": string,
-    "explanation": string,
-    "hdurl": string,
-    "media_type": string,
-    "service_version": string,
-    "title": string
-    "url": string
+type NasaData = z.infer<typeof NasaResponseSchema>;
+
+function render(data: NasaData) {
+  image.src = data.url;
+  title.innerHTML = data.title;
+  explanation.innerHTML = data.explanation;
 }
 
-function render(data:NasaData) {
-    image.src = data.url
-    title.innerHTML = data.title
-    explanation.innerHTML = data.explanation
+async function load() {
+  let response = await http.get("https://api.nasa.gov/planetary/apod", {
+    params: {
+      api_key: "418yCFUIF0MX0Q90XzpHhT84h2iWxhksYsCUvvGW",
+      date: dateInput.value,
+    },
+  });
+  let data = response.data;
+
+  let result = NasaResponseSchema.safeParse(data);
+
+  if (!result.success) {
+    console.log(result.error);
+    return null;
+  }
+  render(data);
 }
 
-async function getNasaData() {
-    let api_key = "418yCFUIF0MX0Q90XzpHhT84h2iWxhksYsCUvvGW"
-    let date = dateInput.value
-    let response = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${api_key}&date=${date}`)
-    let data = await response.json()
-    return data
-}
-
-async function loadData() {
-    let data = await getNasaData()
-    render(data)
-}
-
-button.addEventListener("click", loadData)
-
+button.addEventListener("click", load);
