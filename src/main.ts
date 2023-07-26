@@ -24,12 +24,12 @@ const NasaResponseSchema = z.object({
 
 type NasaData = z.infer<typeof NasaResponseSchema>;
 
-async function load():Promise<null> {
+async function load(start_date:string, end_date:string):Promise<null | NasaData> {
   let response = await http.get("https://api.nasa.gov/planetary/apod", {
     params: {
       api_key: "418yCFUIF0MX0Q90XzpHhT84h2iWxhksYsCUvvGW",
-      start_date: dateFromInput.value,
-      end_date: dateUntilInput.value,
+      start_date: start_date,
+      end_date: end_date,
     },
   });
   let data = response.data;
@@ -40,24 +40,19 @@ async function load():Promise<null> {
     console.log(result.error);
     return null;
   }
-  addContent(data);
-  return null
+
+  return data
 }
 
 function addContent(data: NasaData) {
-  let content = ""
+  gallery.innerHTML = ""
   for(let i = 0; i < data.length; i++){
-    content += "<img " + `id=img${i+1}` + " src='" + data[i].url + "'/>"
-  }
-  gallery.innerHTML = content
-
-  for(let i = 0; i < data.length; i++){
-    document.getElementById(`img${i+1}`)?.addEventListener("click", () => {changeContent(data, i)})
+    gallery.insertAdjacentHTML("beforeend", "<img " + `id=img${i+1}` + " src='" + data[i].url + "'/>")
+    document.getElementById(`img${i+1}`)!.addEventListener("click", () => {changeContent(data, i)})
+    console.log(document.getElementById(`img${i+1}`))
   }
 
-  image.src = data[0].url
-  title.innerHTML = data[0].title
-  explanation.innerHTML = data[0].explanation;
+  changeContent(data, 0)
 }
 
 function changeContent(data: NasaData, i:number) {
@@ -66,7 +61,12 @@ function changeContent(data: NasaData, i:number) {
   explanation.innerHTML = data[i].explanation;
 }
 
-button.addEventListener("click", load);
+button.addEventListener("click", async () => {
+  let data = await load(dateFromInput.value, dateUntilInput.value)
+  if (data) {
+    addContent(data)
+  }
+});
 
 
 
