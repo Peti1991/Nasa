@@ -38,3 +38,8 @@ video {
   --nav-layer: 10;
 }
 /* --- Variables --- */
+
+#gallery img {
+  width: 6rem;
+  height: 8rem;
+}
